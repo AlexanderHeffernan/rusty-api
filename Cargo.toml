@@ -1,9 +1,12 @@
 [package]
 name = "rust-api-template"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
-actix-web = "4.10"
+actix-web = { version = "4.9", features = ["rustls-0_23"] }
 rustls = "0.23"
 rustls-pemfile = "2.2"
+env_logger = "0.11"
+thiserror = "1.0"
+log = "0.4"
