@@ -2,63 +2,40 @@ use actix_web::{App, HttpServer};
 use actix_governor::GovernorConfigBuilder;
 use actix_governor::Governor;
 use log::info;
-use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use crate::auth::Auth;
 use crate::config::load_rustls_config;
+use crate::database::init_db;
+use crate::routes::configure_routes;
 
 mod auth;
 mod config;
+mod database;
 mod models;
 mod routes;
 
-async fn init_db() -> Result<SqlitePool, sqlx::Error> {
-    let db_path = "sqlite://users.db";
-    info!("Connecting to database: {}", db_path);
-
-    let pool = SqlitePoolOptions::new()
-        .max_connections(5)
-        .connect(db_path)
-        .await?;
-
-    info!("Inserting test users...");
-    sqlx::query(
-        r#"
-        INSERT OR IGNORE INTO users (email, api_key, privilege_level)
-        VALUES
-            ('user@example.com', ?, 1),
-            ('admin@example.com', ?, 2)
-        "#,
-    )
-    .bind(uuid::Uuid::new_v4().to_string())
-    .bind(uuid::Uuid::new_v4().to_string())
-    .execute(&pool)
-    .await?;
-
-    Ok(pool)
-}
-
+/*
+    This is a Rust API server template, built for secure and efficient web applications.
+    Supports HTTPS, authentication, and rate limiting.
+*/
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
     info!("Starting API server...");
 
-    let db_pool = match init_db().await {
-        Ok(pool) => pool,
-        Err(e) => {
-            log::error!("Failed to initialize database: {}", e);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Database initialization failed: {}", e),
-            ));
-        }
-    };
+    // Initialize the database for authentication and user management
+    let db_pool = init_db().await.map_err(|e| {
+        log::error!("Failed to initialize database: {}", e);
+        std::io::Error::new(std::io::ErrorKind::Other, format!("Database initialization failed: {}", e))
+    })?;
 
+    // Load TLS configuration for HTTPS
     let tls_config = load_rustls_config("certs/cert.pem", "certs/key.pem")
         .expect("Failed to load TLS configuration");
 
+    // Configure rate limiting using actix-governor
     let governor_conf = GovernorConfigBuilder::default()
-        .per_second(3)
-        .burst_size(20)
+        .per_second(3) // 3 requests per second
+        .burst_size(20) // Allow burst of 20 requests
         .finish()
         .unwrap();
 
@@ -68,8 +45,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(actix_web::web::Data::new(db_pool.clone()))
             .wrap(Governor::new(&governor_conf))
             .wrap(Auth::new(db_pool.clone()))
-            .service(routes::hello)
-            .service(routes::admin)
+            .configure(configure_routes)
     })
     .bind_rustls_0_23(("127.0.0.1", 8443), tls_config)?
     .run()
