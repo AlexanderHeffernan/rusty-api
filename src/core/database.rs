@@ -1,3 +1,15 @@
+/*
+    Author: Alexander Heffernan
+    This file is part of the Rust API Template.
+
+    Description:
+    - This module handles the database connection and initialization.
+
+     License:
+    - This code is provided as-is, without warranty of any kind.
+    - You are free to use, modify, and distribute this code as part of your projects.
+*/
+
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use log::info;
 

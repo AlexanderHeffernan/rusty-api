@@ -1,3 +1,18 @@
+/*
+    Author: Alexander Heffernan
+    This file is part of the Rust API Template.
+
+    Description:
+    - This module implements authentication middleware for Actix Web.
+    - It checks for a valid API key in the request headers.
+    - If the key is valid, it retrieves the user information from the database
+      and sets the user and privilege level in the request extensions.
+
+     License:
+    - This code is provided as-is, without warranty of any kind.
+    - You are free to use, modify, and distribute this code as part of your projects.
+*/
+
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage, HttpRequest,

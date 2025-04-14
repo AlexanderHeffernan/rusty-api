@@ -1,8 +1,15 @@
 /*
-    This module defines the data models used in the api server.
-    Add privilege levels and user fields here.
-    Note:
-    - Ensure that any changes to the 'User' struct match the database schema.
+    Author: Alexander Heffernan
+    This file is part of the Rust API Template.
+
+    Description:
+    - This module defines the data models used in the API server.
+    - Users can modify this file to add privilege levels and user fields.
+    - Note: Ensure that any changes to the 'User' struct match the database schema.
+
+    License:
+    - This code is provided as-is, without warranty of any kind.
+    - You are free to use, modify, and distribute this code as part of your projects.
 */
 
 use serde::{Deserialize, Serialize};
