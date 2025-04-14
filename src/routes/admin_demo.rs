@@ -1,5 +1,5 @@
 use actix_web::{get, HttpRequest, HttpResponse, Responder};
-use crate::auth::require_privilege;
+use crate::core::auth::require_privilege;
 use crate::models::PrivilegeLevel;
 
 /*

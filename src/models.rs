@@ -1,3 +1,10 @@
+/*
+    This module defines the data models used in the api server.
+    Add privilege levels and user fields here.
+    Note:
+    - Ensure that any changes to the 'User' struct match the database schema.
+*/
+
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use num_enum::{IntoPrimitive, TryFromPrimitive}; // Import num_enum traits

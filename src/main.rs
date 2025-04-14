@@ -1,15 +1,19 @@
+/*
+    This is the main entry point for the Rust API server.
+    Users can modify this file to add middleware or configure the server.
+    For adding new routes, use the `routes/` directory.
+*/
+
 use actix_web::{App, HttpServer};
 use actix_governor::GovernorConfigBuilder;
 use actix_governor::Governor;
 use log::info;
-use crate::auth::Auth;
-use crate::config::load_rustls_config;
-use crate::database::init_db;
+use crate::core::auth::Auth;
+use crate::core::config::load_rustls_config;
+use crate::core::database::init_db;
 use crate::routes::configure_routes;
 
-mod auth;
-mod config;
-mod database;
+mod core;
 mod models;
 mod routes;
 
