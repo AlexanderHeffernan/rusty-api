@@ -1,12 +1,17 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use num_enum::{IntoPrimitive, TryFromPrimitive}; // Import num_enum traits
+use std::convert::TryFrom;
 
 /* Represents the privilege levels for users in the system. */
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, IntoPrimitive, TryFromPrimitive)]
+#[repr(i32)]
 pub enum PrivilegeLevel {
     Guest = 0, // Default privilege level for unauthenticated users
     User = 1, // Standard privilege level for authenticated users
     Admin = 2, // Highest privilege level for administrators
+    // Add new privilege levels below
+    // Example: SuperAdmin = 3,
 }
 
 /* Represents a user in the database. */
@@ -16,6 +21,8 @@ pub struct User {
     pub email: String, // Email address of the user
     pub api_key: String, // API key associated with the user for authentication
     pub privilege_level: i32, // Privilege level of the user (stored as an integer in the database)
+    // Add new fields as needed (ensure they are also in the database)
+    // Example: pub name: String,
 }
 
 impl User {
@@ -25,11 +32,6 @@ impl User {
         - A 'PrivilegeLevel' enum representing the user's privilege level.
     */
     pub fn privilege_level(&self) -> PrivilegeLevel {
-        match self.privilege_level {
-            0 => PrivilegeLevel::Guest,
-            1 => PrivilegeLevel::User,
-            2 => PrivilegeLevel::Admin,
-            _ => PrivilegeLevel::Guest,
-        }
+        PrivilegeLevel::try_from(self.privilege_level).unwrap_or(PrivilegeLevel::Guest)
     }
 }

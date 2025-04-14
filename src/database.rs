@@ -16,19 +16,6 @@ pub async fn init_db() -> Result<SqlitePool, sqlx::Error> {
         .connect(db_path)
         .await?;
 
-    info!("Inserting test users...");
-    sqlx::query(
-        r#"
-        INSERT OR IGNORE INTO users (email, api_key, privilege_level)
-        VALUES
-            ('user@example.com', ?, 1),
-            ('admin@example.com', ?, 2)
-        "#,
-    )
-    .bind(uuid::Uuid::new_v4().to_string())
-    .bind(uuid::Uuid::new_v4().to_string())
-    .execute(&pool)
-    .await?;
-
+    info!("Database connection established.");
     Ok(pool)
 }
