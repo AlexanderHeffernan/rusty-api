@@ -14,5 +14,11 @@ fn main() {
         .rate_limit(3, 20)
         .bind("127.0.0.1", 8443)
         .configure_routes(routes)
+        .configure_cors(|| {
+            rusty_api::Cors::default()
+                .allow_any_origin()
+                .allow_any_method()
+                .allowed_header("ngrok-skip-browser-warning")
+        })
         .start();
 }

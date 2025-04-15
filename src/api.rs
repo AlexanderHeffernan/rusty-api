@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 use actix_governor::GovernorConfigBuilder;
 use actix_governor::Governor;
@@ -13,6 +14,7 @@ pub struct Api {
     port: u16,
     rate_limit: (u64, u32),
     custom_routes: Option<Arc<dyn Fn(&mut web::ServiceConfig) + Send + Sync>>,
+    custom_cors: Arc<dyn Fn() -> Cors + Send + Sync>,
 }
 
 impl Api {
@@ -36,6 +38,7 @@ impl Api {
             port: 8443,
             rate_limit: (3, 20),
             custom_routes: None,
+            custom_cors: Arc::new(|| Cors::default()),
         }
     }
 
@@ -132,6 +135,33 @@ impl Api {
         self
     }
 
+    /// Configure CORS settings.
+    ///
+    /// # Arguments
+    /// * `cors` - A closure that takes a `Cors` instance and returns a modified `Cors` instance.
+    ///
+    /// # Returns
+    /// A mutable reference to the `Api` instance.
+    ///
+    /// # Example
+    /// ```
+    /// use rusty_api;
+    ///
+    /// let api = rusty_api::Api::new()
+    ///     .configure_cors(|| {
+    //        rusty_api::Cors::default()
+    //            .allow_any_origin()
+    //            .allow_any_method()
+    ///     });
+    /// ```
+    pub fn configure_cors<F>(mut self, cors_config: F) -> Self
+    where
+        F: Fn() -> Cors + Send + Sync + 'static,
+    {
+        self.custom_cors = Arc::new(cors_config);
+        self
+    }
+
     /// Start the API server.
     ///
     /// # Example:
@@ -152,18 +182,22 @@ impl Api {
 
             let tls_config = load_rustls_config(&self.cert_path, &self.key_path).expect("TLS failed");
 
-            let governor_conf = GovernorConfigBuilder::default()
+            let governor_config = GovernorConfigBuilder::default()
                 .per_second(self.rate_limit.0)
                 .burst_size(self.rate_limit.1)
                 .finish()
                 .unwrap();
 
+            let cors_config = self.custom_cors.clone();
+
             let bind_addr = format!("{}:{}", self.addr, self.port);
 
             log::info!("Server running at https://{}", bind_addr);
             HttpServer::new(move || {
+                let cors = (cors_config)();
                 let mut app = App::new()
-                    .wrap(Governor::new(&governor_conf));
+                    .wrap(cors)
+                    .wrap(Governor::new(&governor_config));
 
                 // Apply custom routes if provided
                 if let Some(custom_routes) = &self.custom_routes {
