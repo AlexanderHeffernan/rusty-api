@@ -1,11 +1,12 @@
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use actix_governor::GovernorConfigBuilder;
 use actix_governor::Governor;
 use log::info;
+use std::sync::Arc;
 use crate::core::auth::Auth;
 use crate::core::config::load_rustls_config;
 use crate::core::database::init_db;
-use crate::routes::configure_routes;
+use crate::routes::Routes;
 
 pub struct Api {
     cert_path: String,
@@ -14,6 +15,7 @@ pub struct Api {
     addr: String,
     port: u16,
     rate_limit: (u64, u32),
+    custom_routes: Option<Arc<dyn Fn(&mut web::ServiceConfig) + Send + Sync>>,
 }
 
 impl Api {
@@ -36,6 +38,7 @@ impl Api {
             addr: "127.0.0.1".into(),
             port: 8443,
             rate_limit: (3, 20),
+            custom_routes: None,
         }
     }
 
@@ -126,6 +129,12 @@ impl Api {
         self
     }
 
+    /// Configure routes using the `Routes` builder.
+    pub fn configure_routes(mut self, routes: Routes) -> Self {
+        self.custom_routes = Some(Arc::new(move |cfg| routes.configure(cfg)));
+        self
+    }
+
     /// Start the API server.
     ///
     /// # Example:
@@ -157,11 +166,17 @@ impl Api {
 
             log::info!("Server running at https://{}", bind_addr);
             HttpServer::new(move || {
-                App::new()
+                let mut app = App::new()
                     .app_data(actix_web::web::Data::new(db_pool.clone()))
                     .wrap(Governor::new(&governor_conf))
-                    .wrap(Auth::new(db_pool.clone()))
-                    .configure(configure_routes)
+                    .wrap(Auth::new(db_pool.clone()));
+
+                // Apply custom routes if provided
+                if let Some(custom_routes) = &self.custom_routes {
+                    app = app.configure(|cfg| custom_routes(cfg));
+                }
+
+                app
             })
             .bind_rustls_0_23((self.addr.to_string(), self.port), tls_config)?
             .run()
