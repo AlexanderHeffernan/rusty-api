@@ -12,9 +12,13 @@
     - You are free to use, modify, and distribute this code as part of your projects.
 */
 
-use rusty_api::start_server;
+use rusty_api;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    start_server().await
+fn main() {
+    rusty_api::Api::new()
+        .certs("certs/cert.pem", "certs/key.pem")
+        .auth_db("users.db")
+        .rate_limit(3, 20)
+        .bind("127.0.0.1", 8443)
+        .start();
 }
