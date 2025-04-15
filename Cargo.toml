@@ -1,7 +1,8 @@
 [package]
-name = "rust-api-template"
+name = "rusty-api"
 version = "0.1.0"
 edition = "2021"
+authors = ["Alexander Heffernan"]
 
 [dependencies]
 actix-web = { version = "4.9", features = ["rustls-0_23"] }

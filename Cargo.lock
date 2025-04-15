@@ -1921,25 +1921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-api-template"
-version = "0.1.0"
-dependencies = [
- "actix-governor",
- "actix-web",
- "env_logger",
- "futures-util",
- "log",
- "num_enum",
- "rustls",
- "rustls-pemfile",
- "serde",
- "sqlx",
- "thiserror 1.0.69",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2017,6 +1998,25 @@ dependencies = [
  "ring",
  "rustls-pki-types",
  "untrusted",
+]
+
+[[package]]
+name = "rusty-api"
+version = "0.1.0"
+dependencies = [
+ "actix-governor",
+ "actix-web",
+ "env_logger",
+ "futures-util",
+ "log",
+ "num_enum",
+ "rustls",
+ "rustls-pemfile",
+ "serde",
+ "sqlx",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]
