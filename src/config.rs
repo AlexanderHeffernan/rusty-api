@@ -1,17 +1,3 @@
-/*
-    Author: Alexander Heffernan
-    This file is part of the Rust API Template.
-
-    Description:
-    - This module loads the TLS configuration for HTTPS.
-    - It reads the certificate and private key from the specified paths.
-    - It returns a ServerConfig object that can be used to configure the Actix web server.
-
-     License:
-    - This code is provided as-is, without warranty of any kind.
-    - You are free to use, modify, and distribute this code as part of your projects.
-*/
-
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use rustls::ServerConfig;
 use std::path::Path;

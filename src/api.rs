@@ -1,11 +1,8 @@
 use actix_web::{App, HttpServer, web};
 use actix_governor::GovernorConfigBuilder;
 use actix_governor::Governor;
-use log::info;
 use std::sync::Arc;
-use crate::core::auth::Auth;
-use crate::core::config::load_rustls_config;
-use crate::core::database::init_db;
+use crate::config::load_rustls_config;
 use crate::routes::Routes;
 
 pub struct Api {
@@ -149,11 +146,10 @@ impl Api {
     /// ```
     pub fn start(self) {
         let rt = actix_web::rt::System::new();
-        rt.block_on(async {
+        if let Err(e) = rt.block_on(async {
             env_logger::init();
             log::info!("Starting API server...");
 
-            let db_pool = init_db().await.expect("DB failed");
             let tls_config = load_rustls_config(&self.cert_path, &self.key_path).expect("TLS failed");
 
             let governor_conf = GovernorConfigBuilder::default()
@@ -167,9 +163,7 @@ impl Api {
             log::info!("Server running at https://{}", bind_addr);
             HttpServer::new(move || {
                 let mut app = App::new()
-                    .app_data(actix_web::web::Data::new(db_pool.clone()))
-                    .wrap(Governor::new(&governor_conf))
-                    .wrap(Auth::new(db_pool.clone()));
+                    .wrap(Governor::new(&governor_conf));
 
                 // Apply custom routes if provided
                 if let Some(custom_routes) = &self.custom_routes {
@@ -181,7 +175,9 @@ impl Api {
             .bind_rustls_0_23((self.addr.to_string(), self.port), tls_config)?
             .run()
             .await
-        });
+        }) {
+            log::error!("Error occurred while running the server: {:?}", e);
+        }
     }
 
     pub fn get_cert_path(&self) -> &str { &self.cert_path }
