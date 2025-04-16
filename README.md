@@ -13,6 +13,7 @@ Add `rusty-api` to your `Cargo.toml`:
 ```toml
 [dependencies]
 rusty-api = "0.1.3"
+```
 
 ## Usage
 ### Setting Up Your API
