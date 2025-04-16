@@ -1,10 +1,10 @@
-use actix_cors::Cors;
-use actix_web::{App, HttpServer, web};
-use actix_governor::GovernorConfigBuilder;
-use actix_governor::Governor;
-use std::sync::Arc;
-use crate::config::load_rustls_config;
+use crate::core::config::load_rustls_config;
 use crate::routes::Routes;
+
+use actix_web::{App, HttpServer, web};
+use actix_governor::{Governor, GovernorConfigBuilder};
+use actix_cors::Cors;
+use std::sync::Arc;
 
 pub struct Api {
     cert_path: String,
@@ -149,9 +149,9 @@ impl Api {
     ///
     /// let api = rusty_api::Api::new()
     ///     .configure_cors(|| {
-    //        rusty_api::Cors::default()
-    //            .allow_any_origin()
-    //            .allow_any_method()
+    ///         rusty_api::Cors::default()
+    ///             .allow_any_origin()
+    ///             .allow_any_method()
     ///     });
     /// ```
     pub fn configure_cors<F>(mut self, cors_config: F) -> Self
@@ -163,22 +163,10 @@ impl Api {
     }
 
     /// Start the API server.
-    ///
-    /// # Example:
-    /// ```
-    /// use rusty_api::Api;
-    /// let api = Api::new()
-    ///     .certs("path/to/cert.pem", "path/to/key.pem")
-    ///     .auth_db("path/to/users.db")
-    ///     .rate_limit(5, 10)
-    ///     .bind("127.0.0.1", 8443)
-    ///     .start();
-    /// ```
     pub fn start(self) {
         let rt = actix_web::rt::System::new();
         if let Err(e) = rt.block_on(async {
-            env_logger::init();
-            log::info!("Starting API server...");
+            println!("INFO: Starting API server...");
 
             let tls_config = load_rustls_config(&self.cert_path, &self.key_path).expect("TLS failed");
 
@@ -192,7 +180,7 @@ impl Api {
 
             let bind_addr = format!("{}:{}", self.addr, self.port);
 
-            log::info!("Server running at https://{}", bind_addr);
+            println!("INFO: Server binding to {}", bind_addr);
             HttpServer::new(move || {
                 let cors = (cors_config)();
                 let mut app = App::new()
@@ -210,7 +198,7 @@ impl Api {
             .run()
             .await
         }) {
-            log::error!("Error occurred while running the server: {:?}", e);
+            println!("ERROR: Failed to start API server: {:?}", e);
         }
     }
 

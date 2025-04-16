@@ -1,6 +1,4 @@
-use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse};
-use actix_web::dev::Handler;
-use crate::check_password;
+use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler};
 
 pub struct Routes {
     routes: Vec<Box<dyn Fn(&mut web::ServiceConfig) + Send + Sync>>,
@@ -14,7 +12,7 @@ impl Routes {
 
     /// Add a new route to the `Routes` instance with password protection.
     pub fn add_route_with_password<H, Args, R>(
-        mut self,
+        self,
         path: &'static str,
         handler: H,
         password: &'static str,
@@ -28,7 +26,7 @@ impl Routes {
     }
 
     /// Add a new route to the `Routes` instance without password protection.
-    pub fn add_route<H, Args, R>(mut self, path: &'static str, handler: H) -> Self
+    pub fn add_route<H, Args, R>(self, path: &'static str, handler: H) -> Self
     where
         H: Handler<Args, Output = R> + Clone + Send + Sync + 'static,
         Args: FromRequest + 'static,
@@ -77,4 +75,19 @@ impl Routes {
             route(cfg);
         }
     }
+}
+
+fn check_password(req: &HttpRequest, expected_password: &str) -> bool {
+    let query_string = req.query_string();
+
+    for pair in query_string.split('&') {
+        let mut key_value = pair.splitn(2, '=');
+        if let (Some(key), Some(value)) = (key_value.next(), key_value.next()) {
+            if key == "password" && value == expected_password {
+                return true;
+            }
+        }
+    }
+
+    false
 }

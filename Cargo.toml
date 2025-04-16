@@ -1,9 +1,13 @@
 [package]
 name = "rusty-api"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 authors = ["Alexander Heffernan"]
 description = "A secure Rust API crate for rapid development, featuring HTTPS, authentication, privilege levels, and rate limiting."
+readme = "README.md"
+repository = "https://github.com/AlexanderHeffernan/rusty-api"
+keywords = ["api", "actix", "https", "authentication", "rate-limiting", "rustls", "cors", "security"]
+categories = ["api-bindings", "network-programming", "web-programming", "asynchronous"]
 license = "MIT"
 
 [dependencies]
@@ -11,14 +15,3 @@ actix-web = { version = "4.9", features = ["rustls-0_23"] }
 actix-governor = "0.3.2"
 actix-cors = "0.6"
 rustls = "0.23"
-rustls-pemfile = "2.2"
-env_logger = "0.11"
-thiserror = "1.0"
-log = "0.4"
-sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "uuid"] }
-uuid = { version = "1.10", features = ["v4"] }
-serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.40", features = ["macros"] }
-futures-util = "0.3"
-num_enum = "0.5"
-serde_urlencoded = "0.7"
