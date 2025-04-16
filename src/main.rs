@@ -1,17 +1,17 @@
 use rusty_api;
 
-async fn helloadmin(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
-    rusty_api::HttpResponse::Ok().body("Hello admin from a dedicated route!")
+async fn password_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
+    rusty_api::HttpResponse::Ok().body("Password route accessed!")
 }
 
-async fn hello(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
-    rusty_api::HttpResponse::Ok().body("Hello from a dedicated route!")
+async fn open_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
+    rusty_api::HttpResponse::Ok().body("Open route accessed!")
 }
 
 fn main() {
     let routes = rusty_api::Routes::new()
-        .add_route_with_password("/helloadmin", helloadmin, "Password123")
-        .add_route("/hello", hello);
+        .add_route_with_password("/password_route", password_route, "Password123")
+        .add_route("/open_route", open_route);
 
     rusty_api::Api::new()
         .certs("certs/cert.pem", "certs/key.pem")

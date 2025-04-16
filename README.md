@@ -1,60 +1,69 @@
-# RustAPIStarter
-A secure, lightweight Rust API template for rapid backend development. Features **HTTPS**, **user authentication**, **privilege levels**, and **rate limiting**.
+# Rusty API
+Rusty API is a secure and lightweight Rust library for building backend APIs. It features **HTTPS**, **password-protected routes**, **rate limiting**, and more, making it ideal for rapid API development.
 
 ## Features
-- **HTTPS**: Built-in TLS for secure communication.
-- **Authentication**: JWT-based user login with refresh tokens.
-- **Privilege Levels**: Role-based access control (admin, user, etc.).
-- **Rate Limiting**: Configurable limits to prevent abuse.
-- **Modular**: Simple to extend with custom routes, user privilege levels and user data fields.
+- **Password-Protected Routes**: Easily secure specific routes with passwords.
+- **HTTPS Support**: Built-in support for secure communication using Rustls.
+- **Rate Limiting**: Prevent abuse with configurable rate limits.
+- **CORS Configuration**: Flexible CORS settings for cross-origin requests.
+- **Actix Web Integration**: Built on top of Actix Web for high performance.
 
-## Getting Started
-### Prerequisites
-- [Rust](https://www.rust-lang.org/tools/install) (stable)
-- [OpenSSL](https://www.openssl.org/) (for HTTPS certificates)
-- [sqlite3](https://sqlite.org/download.html) (for user authentication)
+## Installation
+Add `rusty-api` to your `Cargo.toml`:
+```toml
+[dependencies]
+rusty-api = "0.1.3"
 
-### Installation
-#### 1. Clone the repository:
-```bash
-git clone https://github.io/AlexanderHeffernan/RustAPIStarter.git
-cd RustAPIStarter
+## Usage
+### Setting Up Your API
+Here's an example of how to use rusty-api to create an API with public and password-protected routes:
+```rust
+use rusty_api;
+
+async fn password_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
+    rusty_api::HttpResponse::Ok().body("Password route accessed!")
+}
+
+async fn open_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
+    rusty_api::HttpResponse::Ok().body("Open route accessed!")
+}
+
+fn main() {
+    let routes = rusty_api::Routes::new()
+        .add_route_with_password("/password_route", password_route, "Password123")
+        .add_route("/open_route", open_route);
+
+    rusty_api::Api::new()
+        .certs("certs/cert.pem", "certs/key.pem")
+        .auth_db("users.db")
+        .rate_limit(3, 20)
+        .bind("127.0.0.1", 8443)
+        .configure_routes(routes)
+        .configure_cors(|| {
+            rusty_api::Cors::default()
+                .allow_any_origin()
+                .allow_any_method()
+                .allowed_header("ngrok-skip-browser-warning")
+        })
+        .start();
+}
 ```
-#### 2. Generate self-signed certificates
+
+### Generating Self-Signed Certificates
+To enable HTTPS, generate self-signed certificates:
 ```bash
 mkdir -p certs
 openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem
 ```
-#### 3. Prepare the SQLite database
-```bash
-sqlite3 user.db
-```
-```sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT NOT NULL UNIQUE,
-  api_key TEXT NOT NULL UNIQUE,
-  privilege_level INTEGER NOT NULL
-);
-.exit
-```
-This will create a user.db file with a users table containing the required fields: id, email, api_key, and privilege_level.
-email, api_key, and privilege_level.
-#### 4. Build and run the project
+
+### Running the API
+Run your API with:
 ```bash
 cargo run
 ```
-The API will start on `https://localhost:8443` by default.
-
-## Usage
-- Add routes in `src/routes/`.
-- Define models in `src/models/`.
-- Check `src/routes/` for sample APIs (e.g. `admin_demo.rs` and `guest_demo.rs`).
-- Test endpoints with curl (e.g., `https://localhost:8443/guest_demo`.
 
 ## Contributing
-Issues and pull requests are welcome!
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
-- This code is provided as-is, without warranty of any kind.
-- You are free to use, modify, and distribute this code as part of your projects.
+This project is licensed under the MIT License.
