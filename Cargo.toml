@@ -1,7 +1,7 @@
 [package]
 name = "rusty-api"
 version = "0.1.7"
-edition = "2021"
+edition = "2024"
 authors = ["Alexander Heffernan"]
 description = "A secure Rust API crate for rapid development, featuring HTTPS, authentication, privilege levels, and rate limiting."
 readme = "README.md"
