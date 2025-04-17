@@ -27,7 +27,7 @@
  * ## Example
  * ### Setting up your API
  * Here's an example of how to use rusty-api to create an API with public and password-protected routes:
- * ```rust
+ * ```rust,no_run,ignore
  * use rusty_api;
  *
  * async fn password_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {

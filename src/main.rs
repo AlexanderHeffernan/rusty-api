@@ -15,7 +15,6 @@ fn main() {
 
     rusty_api::Api::new()
         .certs("certs/cert.pem", "certs/key.pem")
-        .auth_db("users.db")
         .rate_limit(3, 20)
         .bind("127.0.0.1", 8443)
         .configure_routes(routes)
