@@ -1,11 +1,28 @@
+/*!
+ * The `config` module provides functionality for loading and configuring TLS settings for the API server.
+ *
+ * This module simplifies the process of setting up secure HTTPS communication by
+ * reading certificate and private key files and creating a `ServerConfig` object
+ * compatible with Rustls and Actix Web. This module is used internally by the `Api` struct.
+ *
+ * This module features:
+ * - **Certificate Loading**: Reads and parses PEM-encoded certificate chains.
+ * - **Private Key Loading**: Reads and parses PEM-encoded private keys.
+ * - **Rustls Integration**: Creates a `ServerConfig` for secure HTTPS communication.
+ *
+ * # Example
+ * ```rust,no_run
+ * use rusty_api::Api;
+ *
+ * let api = Api::new()
+ *    .certs("path/to/cert.pem", "path/to/key.pem") // Load the certificate and key into the API struct
+ *    .start(); // Starting the API server will call this module internally.
+ * ```
+ */
 use rustls::{pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject}, ServerConfig};
 use std::path::Path;
 
-/*
-    Load TLS configuration for HTTPS.
-    This function reads the certificate and private key from the specified paths.
-    It returns a ServerConfig object that can be used to configure the Actix web server.
-*/
+/// Loads the TLS configuration for the API server.
 pub fn load_rustls_config(cert_path: impl AsRef<Path>, key_path: impl AsRef<Path>) -> Option<ServerConfig> {
     let cert_path = cert_path.as_ref();
     let key_path = key_path.as_ref();
