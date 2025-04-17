@@ -1,11 +1,12 @@
 [package]
 name = "rusty-api"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 authors = ["Alexander Heffernan"]
 description = "A secure Rust API crate for rapid development, featuring HTTPS, authentication, privilege levels, and rate limiting."
 readme = "README.md"
 repository = "https://github.com/AlexanderHeffernan/rusty-api"
+documentation = "https://docs.rs/rusty-api"
 keywords = ["api", "https", "authentication", "rate-limiting", "security"]
 categories = ["api-bindings", "network-programming", "web-programming", "asynchronous"]
 license = "MIT"
