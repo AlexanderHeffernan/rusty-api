@@ -12,7 +12,7 @@ Rusty API is a secure and lightweight Rust library for building backend APIs. It
 Add `rusty-api` to your `Cargo.toml`:
 ```toml
 [dependencies]
-rusty-api = "0.1.6"
+rusty-api = "0.1.8"
 ```
 
 ## Usage
@@ -62,6 +62,14 @@ Run your API with:
 ```bash
 cargo run
 ```
+
+## Projects Using This Package
+Here are some projects that use [rusty-api](https://crates.io/crates/rusty-api) for their API's. Want to add your project? See [Contributing](#contributing) below!
+
+| Project | Description | Links |
+|---------|-------------|-------|
+| **ServerWatch** | A lightweight system monitoring tool that collects metrics and exposes them via a secure HTTPS endpoint. Built for Raspberry Pi and other Linux systems. | [GitHub](https://github.com/AlexanderHeffernan/ServerWatch) \| [Website](https://alexanderheffernan.github.io/ServerWatch/) |
+| **Your Project Here** | Have a project using this package? Submit a PR to add it! | See Contributing below! |
 
 ## Contributing
 Contributions are welcome! Feel free to open issues or submit pull requests.
