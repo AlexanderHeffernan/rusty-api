@@ -1,16 +1,92 @@
+/*!
+ * The `routes` module provides functionality for defining and managing API routes.
+ *
+ * This module allows developers to create routes with or without password protection,
+ * and apply them to an Actix Web `ServiceConfig`. It simplifies the process of setting
+ * up API endpoints and ensures secure access to protected routes.
+ *
+ * This module features:
+ * - **Password-Protected Routes**: Easily secure specific routes with a password.
+ * - **Public Routes**: Define routes that are accessible without authentication.
+ * - **Flexible Configuration**: Apply routes to an Actix Web `ServiceConfig` for seamless integration.
+ *
+ * The `Routes` struct serves as a container for all defined routes, allowing for
+ * easy management and configuration.
+ */
 use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler};
 
+/**
+ * The `Routes` struct is used to manage API routes.
+ *
+ * It allows for the addition of routes with or without password protection,
+ * and provides a method to apply these routes to an Actix Web `ServiceConfig`.
+ *
+ * # Example
+ * ```rust
+ * use rusty_api::Routes;
+ * use actix_web::{HttpRequest, HttpResponse};
+ * 
+ * async fn public_route(_req: HttpRequest) -> HttpResponse {
+ *     HttpResponse::Ok().body("Public route accessed!")
+ * }
+ * 
+ * async fn protected_route(_req: HttpRequest) -> HttpResponse {
+ *     HttpResponse::Ok().body("Protected route accessed!")
+ * }
+ * 
+ * let routes = Routes::new()
+ *     .add_route("/public", public_route)
+ *     .add_route_with_password("/protected", protected_route, "SecretPassword");
+ * ```
+ */
 pub struct Routes {
     routes: Vec<Box<dyn Fn(&mut web::ServiceConfig) + Send + Sync>>,
 }
 
 impl Routes {
-    /// Create a new `Routes` instance.
+    /**
+     * Create a new `Routes` instance.
+     *
+     * This initializes an empty collection of routes that can be configured
+     * and applied to an Actix Web `ServiceConfig`, via the `Api` struct.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::Routes;
+     * use rusty_api::Api;
+     *
+     * let routes = Routes::new();
+     * let api = Api::new() 
+     *     .configure_routes(routes);
+     * ```
+     */
     pub fn new() -> Self {
         Self { routes: Vec::new() }
     }
 
-    /// Add a new route to the `Routes` instance with password protection.
+    /**
+     * Add a new route to the `Routes` instance with password protection.
+     *
+     * This method allows you to define a route that requires a password to access.
+     * The password is passed as a query parameter in the request.
+     *
+     * # Arguments
+     * - `path`: The URL path for the route.
+     * - `handler`: The handler function for the route.
+     * - `password`: The password required to access the route.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     *
+     * async fn protected_route(_req: HttpRequest) -> HttpResponse {
+     *    HttpResponse::Ok().body("Protected route accessed!")
+     * }
+     *
+     * let routes = Routes::new()
+     *    .add_route_with_password("/protected", protected_route, "SecretPassword");
+     * ```
+     */
     pub fn add_route_with_password<H, Args, R>(
         self,
         path: &'static str,
@@ -25,7 +101,27 @@ impl Routes {
         self.add_route_internal(path, handler, Some(password))
     }
 
-    /// Add a new route to the `Routes` instance without password protection.
+    /**
+     * Add a new route to the `Routes` instance without password protection.
+     *
+     * This method allows you to define a public route that does not require authentication.
+     *
+     * # Arguments
+     * - `path`: The URL path for the route.
+     * - `handler`: The handler function for the route.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     * 
+     * async fn public_route(_req: HttpRequest) -> HttpResponse {
+     *    HttpResponse::Ok().body("Public route accessed!")
+     * }
+     *
+     * let routes = Routes::new()
+     *   .add_route("/public", public_route);
+     * ```
+     */
     pub fn add_route<H, Args, R>(self, path: &'static str, handler: H) -> Self
     where
         H: Handler<Args, Output = R> + Clone + Send + Sync + 'static,
@@ -69,7 +165,25 @@ impl Routes {
         self
     }
 
-    /// Apply the routes to a `ServiceConfig`.
+    /**
+     * Apply the routes to a `ServiceConfig`.
+     *
+     * This method iterates over all defined routes and applies them to the
+     * provided Axtix Web `ServiceConfig`. It is used internally by the `Api` struct.
+     *
+     * # Arguments
+     * - `cfg`: A mutable reference to the `ServiceConfig` to which the routes will be applied.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::{Routes, Api};
+     *
+     * let routes = Routes::new();
+     *
+     * let api = Api::new()
+     *    .configure_routes(routes); // The configure_routes method calls the configure method internally.
+     * ```
+     */
     pub fn configure(&self, cfg: &mut web::ServiceConfig) {
         for route in &self.routes {
             route(cfg);
@@ -77,6 +191,7 @@ impl Routes {
     }
 }
 
+/// Check if the request contains the expected password in the query string.
 fn check_password(req: &HttpRequest, expected_password: &str) -> bool {
     let query_string = req.query_string();
 
