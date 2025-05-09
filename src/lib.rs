@@ -85,3 +85,11 @@ pub use crate::core::auth::validate_token;
 pub use actix_web::{web, HttpResponse, HttpRequest};
 pub use actix_web::http::StatusCode;
 pub use actix_cors::Cors;
+
+use once_cell::sync::Lazy;
+use sqlx::SqlitePool;
+
+pub static DB_POOL: Lazy<SqlitePool> = Lazy::new(|| {
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    SqlitePool::connect_lazy(&database_url).expect("Failed to create database pool")
+});

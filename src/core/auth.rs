@@ -2,7 +2,7 @@ use crate::core::user::{LoginResponse, User};
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, Header, EncodingKey, decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error, HttpMessage};
+use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error, HttpMessage, HttpRequest};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::{ok, Ready};
 use std::env;
@@ -79,7 +79,14 @@ pub async fn login_user(
     Ok(LoginResponse { token })
 }
 
-pub fn validate_token(token: &str) -> Result<Claims, Error> {
+pub fn validate_token(req: &HttpRequest) -> Result<Claims, actix_web::Error> {
+    let token = req
+        .headers()
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+        .and_then(|h| h.strip_prefix("Bearer "))
+        .ok_or(actix_web::error::ErrorUnauthorized("Missing or invalid token"))?;
+
     let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     match decode::<Claims>(
