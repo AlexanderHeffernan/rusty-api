@@ -79,6 +79,9 @@ pub async fn login_user(
     Ok(LoginResponse { token })
 }
 
+/**
+ * Middleware to extract and validate JWT token from the request.
+ */
 pub fn validate_token(token: &str) -> Result<Claims, actix_web::Error> {
     let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 

@@ -241,7 +241,8 @@ impl Api {
     }
 
     /**
-     * Enable user database.
+     * Enable user database. Ensure a sqlite3 database is created at the path specified in the `DATABASE_URL` environment variable.
+     * When enabled, the API will use the database for user authentication and management. This activates the login and register routes as "/login" and "/register".
      *
      * # Returns
      * A mutable reference to the `Api` instance.

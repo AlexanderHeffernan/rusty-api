@@ -132,6 +132,28 @@ impl Routes {
         self.add_route_internal(path, handler, None)
     }
 
+    /**
+     * Add a new route to the `Routes` instance with authentication.
+     *
+     * This method allows you to define a route that requires authentication via a token.
+     * The token is passed in the `Authorization` header of the request.
+     *
+     * # Arguments
+     * - `path`: The URL path for the route.
+     * - `handler`: The handler function for the route.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     *
+     * async fn auth_route(_req: HttpRequest, userId: i32) -> HttpResponse {
+     *    HttpResponse::Ok().body(format!("Authenticated user ID: {}", userId))
+     * }
+     *
+     * let routes = Routes::new()
+     *    .add_route_with_auth("/auth", auth_route);
+     * ```
+     */
     pub fn add_route_with_auth<H, R>(mut self, path: &'static str, handler: H) -> Self
     where
         H: Fn(HttpRequest, i32) -> R + Clone + Send + Sync + 'static,

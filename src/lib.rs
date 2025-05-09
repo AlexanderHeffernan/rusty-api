@@ -90,6 +90,12 @@ pub use actix_cors::Cors;
 use once_cell::sync::Lazy;
 use sqlx::SqlitePool;
 
+/**
+ * The `DB_POOL` is a global connection pool for SQLite database.
+ *
+ * It is initialized lazily when first accessed, using the `DATABASE_URL`
+ * environment variable to determine the database location.
+ */
 pub static DB_POOL: Lazy<SqlitePool> = Lazy::new(|| {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     SqlitePool::connect_lazy(&database_url).expect("Failed to create database pool")
