@@ -69,6 +69,9 @@ pub struct Api {
 
     /// Custom CORS configuration, provided as a closure.
     custom_cors: Arc<dyn Fn() -> Cors + Send + Sync>,
+
+    /// Optional enable user database.
+    user_db: bool,
 }
 
 impl Api {
@@ -99,6 +102,7 @@ impl Api {
             rate_limit: (3, 20),
             custom_routes: None,
             custom_cors: Arc::new(|| Cors::default()),
+            user_db: false,
         }
     }
 
@@ -237,6 +241,24 @@ impl Api {
     }
 
     /**
+     * Enable user database.
+     *
+     * # Returns
+     * A mutable reference to the `Api` instance.
+     *
+     * # Example
+     * ```rust
+     * use rusty_api::Api;
+     *
+     * let api = Api::new().enable_user_db();
+     * ```
+     */
+    pub fn enable_user_db(mut self) -> Self {
+        self.user_db = true;
+        self
+    }
+
+    /**
      * Start the API server.
      * 
      * This method initializes the server and begins listening for incoming requests.
@@ -253,6 +275,13 @@ impl Api {
         if let Err(e) = rt.block_on(async {
             println!("INFO: Starting API server...");
 
+            dotenv::dotenv().ok();
+            let pool = if self.user_db {
+                Some(crate::core::db::init_db().await.expect("Failed to init DB"))
+            } else {
+                None
+            };
+
             let tls_config = load_rustls_config(&self.cert_path, &self.key_path).expect("TLS failed");
 
             let governor_config = GovernorConfigBuilder::default()
@@ -267,10 +296,17 @@ impl Api {
 
             println!("INFO: Server binding to {}", bind_addr);
             HttpServer::new(move || {
-                let cors = (cors_config)();
+            let cors = (cors_config)();
                 let mut app = App::new()
                     .wrap(cors)
                     .wrap(Governor::new(&governor_config));
+
+                // Add app_data for the pool if it exists
+                if let Some(pool) = pool.clone() {
+                    app = app.app_data(web::Data::new(pool));
+                    // Configure routes::configure_routes
+                    app = app.configure(crate::core::routes::configure_routes);
+                }
 
                 // Apply custom routes if provided
                 if let Some(custom_routes) = &self.custom_routes {
