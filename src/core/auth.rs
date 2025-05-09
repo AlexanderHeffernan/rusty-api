@@ -6,6 +6,7 @@ use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error, HttpMessage};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::{ok, Ready};
 use std::env;
+use sqlx::Row;
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
@@ -39,7 +40,7 @@ pub async fn register_user(
     
     // Insert user
     let user = sqlx::query_as::<_, User>(
-        "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING *"
+        "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id, username, password_hash"
     )
     .bind(&input.username)
     .bind(&password_hash)
@@ -55,12 +56,18 @@ pub async fn login_user(
     input: crate::core::user::LoginInput,
 ) -> Result<LoginResponse, String> {
     // Find user
-    let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?")
+    let row = sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ?")
         .bind(&input.username)
         .fetch_optional(pool)
         .await
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or("User not found")?;
+
+    let user = User {
+        id: row.get("id"),
+        username: row.get("username"),
+        password_hash: row.get("password_hash"),
+    };
     
     // Verify password
     if !verify_password(&input.password, &user.password_hash) {
@@ -72,23 +79,15 @@ pub async fn login_user(
     Ok(LoginResponse { token })
 }
 
-pub async fn validate_token(
-    req: ServiceRequest,
-    credentials: BearerAuth,
-) -> Result<ServiceRequest, (Error, ServiceRequest)> {
-    let token = credentials.token();
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+pub fn validate_token(token: &str) -> Result<Claims, Error> {
+    let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     match decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_ref()),
         &Validation::default(),
     ) {
-        Ok(decoded) => {
-            // Attach user claims to the request extensions
-            req.extensions_mut().insert(decoded.claims);
-            Ok(req)
-        }
-        Err(_) => Err((actix_web::error::ErrorUnauthorized("Invalid token"), req)),
+        Ok(decoded) => Ok(decoded.claims),
+        Err(_) => Err(actix_web::error::ErrorUnauthorized("Invalid token")),
     }
 }

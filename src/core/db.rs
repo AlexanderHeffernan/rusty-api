@@ -7,3 +7,17 @@ pub async fn init_db() -> Result<Pool<Sqlite>, sqlx::Error> {
 
     Ok(pool)
 }
+
+pub async fn get_user_field(
+    pool: &SqlitePool,
+    user_id: i32,
+    field: &str,
+) -> Result<Option<String>, sqlx::Error> {
+    let query = format!("SELECT {} FROM users WHERE id = ?", field);
+    let result: Option<(String,)> = sqlx::query_as(&query)
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?;
+
+    Ok(result.map(|row| row.0))
+}
