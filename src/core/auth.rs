@@ -79,20 +79,13 @@ pub async fn login_user(
     Ok(LoginResponse { token })
 }
 
-pub fn validate_token(req: &HttpRequest) -> Result<Claims, actix_web::Error> {
-    let token = req
-        .headers()
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .and_then(|h| h.strip_prefix("Bearer "))
-        .ok_or(actix_web::error::ErrorUnauthorized("Missing or invalid token"))?;
+pub fn validate_token(token: &str) -> Result<Claims, actix_web::Error> {
+    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
-    let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-
-    match decode::<Claims>(
+    match jsonwebtoken::decode::<Claims>(
         token,
-        &DecodingKey::from_secret(secret.as_ref()),
-        &Validation::default(),
+        &jsonwebtoken::DecodingKey::from_secret(secret.as_ref()),
+        &jsonwebtoken::Validation::default(),
     ) {
         Ok(decoded) => Ok(decoded.claims),
         Err(_) => Err(actix_web::error::ErrorUnauthorized("Invalid token")),

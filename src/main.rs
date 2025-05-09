@@ -8,17 +8,24 @@ async fn open_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
     rusty_api::HttpResponse::Ok().body("Open route accessed!")
 }
 
-async fn get_role(req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
-    let claims = match rusty_api::validate_token(&req) {
-        Ok(claims) => claims,
-        Err(err) => return err.into(),
-    };
+async fn get_role(_req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpResponse {
+    rusty_api::get_user_field(userId, "role").await
+}
 
-    match rusty_api::get_user_field(claims.sub, "role").await {
-        Ok(Some(role)) => rusty_api::HttpResponse::Ok().body(role),
-        Ok(None) => rusty_api::HttpResponse::NotFound().body("Role not found"),
-        Err(_) => rusty_api::HttpResponse::InternalServerError().body("Database error"),
-    }
+async fn set_role(req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpResponse {
+    let query = req.query_string();
+    println!("Query string: {}", query);
+
+    let new_role = req
+        .uri()
+        .query()
+        .and_then(|q| q.split('&').find(|pair| pair.starts_with("args=")))
+        .and_then(|pair| pair.split('=').nth(1))
+        .unwrap_or("default_role");
+
+    println!("set_role called with user_id: {}, new_role: {}", userId, new_role);
+
+    rusty_api::set_user_field(userId, "role", &new_role).await
 }
 
 fn main() {
@@ -28,7 +35,9 @@ fn main() {
     let routes = rusty_api::Routes::new()
         .add_route_with_password("/password_route", password_route, "Password123")
         .add_route("/open_route", open_route)
-        .add_route("/get_role", get_role);
+        .add_route_with_auth("/get_role", get_role)
+        .add_route_with_auth("/set_role", set_role);
+        // .add_route_with_auth("/set_role", set_role);
 
     rusty_api::Api::new()
         .certs("certs/cert.pem", "certs/key.pem")

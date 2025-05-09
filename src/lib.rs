@@ -79,8 +79,9 @@ pub mod core;
 pub use crate::api::Api;
 pub use crate::routes::Routes;
 pub use crate::core::config::load_rustls_config;
-pub use crate::core::db::get_user_field;
+pub use crate::core::db::{get_user_field, set_user_field};
 pub use crate::core::auth::validate_token;
+pub use crate::core::auth::Claims;
 
 pub use actix_web::{web, HttpResponse, HttpRequest};
 pub use actix_web::http::StatusCode;

@@ -14,6 +14,7 @@
  * easy management and configuration.
  */
 use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler};
+use crate::core::auth::{validate_token, Claims};
 
 /**
  * The `Routes` struct is used to manage API routes.
@@ -129,6 +130,47 @@ impl Routes {
         R: Responder + 'static,
     {
         self.add_route_internal(path, handler, None)
+    }
+
+    pub fn add_route_with_auth<H, R>(mut self, path: &'static str, handler: H) -> Self
+    where
+        H: Fn(HttpRequest, i32) -> R + Clone + Send + Sync + 'static,
+        R: futures_util::Future<Output = HttpResponse> + 'static,
+    {
+        let wrapped_handler = move |req: HttpRequest| {
+            let handler = handler.clone();
+            async move {
+                // Extract and validate the token
+                let token = match req
+                    .headers()
+                    .get("Authorization")
+                    .and_then(|h| h.to_str().ok())
+                    .and_then(|h| h.strip_prefix("Bearer "))
+                {
+                    Some(token) => token,
+                    None => return HttpResponse::Unauthorized().body("Missing or invalid token"),
+                };
+
+                // Validate the token and extract the user ID
+                let user_id = match validate_token(token) {
+                    Ok(claims) => claims.sub,
+                    Err(_) => return HttpResponse::Unauthorized().body("Invalid token"),
+                };
+
+                // Call the handler with the user ID
+                handler(req, user_id).await
+            }
+        };
+
+        let route = {
+            let wrapped_handler = wrapped_handler.clone(); // Clone the handler inside the closure
+            move |cfg: &mut web::ServiceConfig| {
+                cfg.route(path, web::get().to(wrapped_handler.clone())); // Clone again for Actix
+            }
+        };
+
+        self.routes.push(Box::new(route));
+        self
     }
 
     /// Internal function to handle adding routes with or without passwords.
