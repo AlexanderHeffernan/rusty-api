@@ -13,17 +13,12 @@ async fn get_role(_req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpR
 }
 
 async fn set_role(req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpResponse {
-    let query = req.query_string();
-    println!("Query string: {}", query);
-
     let new_role = req
         .uri()
         .query()
         .and_then(|q| q.split('&').find(|pair| pair.starts_with("args=")))
         .and_then(|pair| pair.split('=').nth(1))
         .unwrap_or("default_role");
-
-    println!("set_role called with user_id: {}, new_role: {}", userId, new_role);
 
     rusty_api::set_user_field(userId, "role", &new_role).await
 }
@@ -37,7 +32,6 @@ fn main() {
         .add_route("/open_route", open_route)
         .add_route_with_auth("/get_role", get_role)
         .add_route_with_auth("/set_role", set_role);
-        // .add_route_with_auth("/set_role", set_role);
 
     rusty_api::Api::new()
         .certs("certs/cert.pem", "certs/key.pem")
