@@ -9,6 +9,9 @@ async fn open_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
 }
 
 fn main() {
+    rustls::crypto::CryptoProvider::install_default(rustls::crypto::ring::default_provider());
+    dotenv::dotenv().ok();
+    
     let routes = rusty_api::Routes::new()
         .add_route_with_password("/password_route", password_route, "Password123")
         .add_route("/open_route", open_route);
@@ -24,5 +27,6 @@ fn main() {
                 .allow_any_method()
                 .allowed_header("ngrok-skip-browser-warning")
         })
+        .enable_user_db()
         .start();
 }

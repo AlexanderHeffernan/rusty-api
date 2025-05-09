@@ -1,6 +1,6 @@
 [package]
 name = "rusty-api"
-version = "0.1.9"
+version = "0.2.0"
 edition = "2024"
 authors = ["Alexander Heffernan"]
 description = "A secure Rust API crate for rapid development, featuring HTTPS, authentication, privilege levels, and rate limiting."
@@ -16,3 +16,10 @@ actix-web = { version = "4.9", features = ["rustls-0_23"] }
 actix-governor = "0.3.2"
 actix-cors = "0.6"
 rustls = "0.23"
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+jsonwebtoken = "9.3"
+dotenv = "0.15"
+bcrypt = "0.15"
+chrono = "0.4"
