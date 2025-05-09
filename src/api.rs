@@ -16,7 +16,22 @@ use crate::routes::Routes;
 use actix_web::{App, HttpServer, web};
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_cors::Cors;
-use std::sync::Arc;
+use std::sync::{Arc, Once};
+
+static INIT: Once = Once::new();
+
+/**
+ * Initialize the crypto provider for Rustls.
+ *
+ * This function sets up the default crypto provider for Rustls using the `ring` library.
+ * It is called once to ensure that the provider is initialized only once during the lifetime
+ * of the application.
+ */
+fn initialize_crypto_provider() {
+    INIT.call_once(|| {
+        let _ = rustls::crypto::CryptoProvider::install_default(rustls::crypto::ring::default_provider());
+    });
+}
 
 /**
  * The `Api` struct is the main entry point for configuring and running the API server.
@@ -100,6 +115,7 @@ impl Api {
      * ```
      */
     pub fn new() -> Self {
+        initialize_crypto_provider(); // Ensure the crypto provider is initialized
         Self {
             cert_path: "certs/cert.pem".into(),
             key_path: "certs/key.pem".into(),
@@ -249,7 +265,7 @@ impl Api {
     }
 
     /// Enable user database with default login and register routes.
-    pub fn enable_user_db(mut self) -> Self {
+    pub fn enable_user_db(self) -> Self {
         self.enable_user_db_with_routes("/login", "/register")
     }
 

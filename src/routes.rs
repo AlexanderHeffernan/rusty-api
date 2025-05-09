@@ -14,7 +14,7 @@
  * easy management and configuration.
  */
 use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler};
-use crate::core::auth::{validate_token, Claims};
+use crate::core::auth::{validate_token};
 
 /**
  * The `Routes` struct is used to manage API routes.

@@ -5,9 +5,8 @@
  * the necessary input and output structures. It uses Actix Web for routing
  * and SQLx for database interaction.
  */
-use actix_web::{web, HttpResponse, HttpMessage};
-use actix_web_httpauth::middleware::HttpAuthentication;
-use crate::core::auth::{login_user, register_user, validate_token, Claims};
+use actix_web::{web, HttpResponse};
+use crate::core::auth::{login_user, register_user};
 use crate::core::user::{LoginInput, RegisterInput};
 
 /**

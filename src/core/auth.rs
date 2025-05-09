@@ -1,10 +1,7 @@
 use crate::core::user::{LoginResponse, User};
 use bcrypt::{hash, verify};
-use jsonwebtoken::{encode, Header, EncodingKey, decode, DecodingKey, Validation};
+use jsonwebtoken::{encode, Header, EncodingKey};
 use serde::{Deserialize, Serialize};
-use actix_web::{dev::ServiceRequest, dev::ServiceResponse, Error, HttpMessage, HttpRequest};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
-use futures_util::future::{ok, Ready};
 use std::env;
 use sqlx::Row;
 

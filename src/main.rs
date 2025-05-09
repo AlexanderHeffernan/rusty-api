@@ -8,11 +8,11 @@ async fn open_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
     rusty_api::HttpResponse::Ok().body("Open route accessed!")
 }
 
-async fn get_role(_req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpResponse {
-    rusty_api::get_user_field(userId, "role").await
+async fn get_role(_req: rusty_api::HttpRequest, user_id: i32) -> rusty_api::HttpResponse {
+    rusty_api::get_user_field(user_id, "role").await
 }
 
-async fn set_role(req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpResponse {
+async fn set_role(req: rusty_api::HttpRequest, user_id: i32) -> rusty_api::HttpResponse {
     let new_role = req
         .uri()
         .query()
@@ -20,13 +20,10 @@ async fn set_role(req: rusty_api::HttpRequest, userId: i32) -> rusty_api::HttpRe
         .and_then(|pair| pair.split('=').nth(1))
         .unwrap_or("default_role");
 
-    rusty_api::set_user_field(userId, "role", &new_role).await
+    rusty_api::set_user_field(user_id, "role", &new_role).await
 }
 
 fn main() {
-    rustls::crypto::CryptoProvider::install_default(rustls::crypto::ring::default_provider());
-    dotenv::dotenv().ok();
-    
     let routes = rusty_api::Routes::new()
         .add_route_with_password("/password_route", password_route, "Password123")
         .add_route("/open_route", open_route)
