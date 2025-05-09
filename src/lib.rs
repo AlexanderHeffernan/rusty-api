@@ -1,8 +1,7 @@
 /*!
- * [![github]](https://github.com/AlexanderHeffernan/rusty-api)&ensp;[![crates-io]](https://crates.io/crates/rusty-api)&ensp;[![docs-rs]](crate)
- * [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
- * [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
- * [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+ * [![GitHub](https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github)](https://github.com/AlexanderHeffernan/rusty-api)
+ * [![Crates.io](https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust)](https://crates.io/crates/rusty-api)
+ * [![Docs.rs](https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs)](https://docs.rs/rusty-api)
  * 
  * Rusty API is lightweight and secure library for building backend APIs in Rust, designed to simplify the development of modern web services.
  * 
