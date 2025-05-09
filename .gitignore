@@ -1,2 +1,6 @@
 /target
 /certs/*.pem
+src/.env
+.DS_Store
+.env
+users.db
