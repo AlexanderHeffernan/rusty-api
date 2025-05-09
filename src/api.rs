@@ -72,6 +72,12 @@ pub struct Api {
 
     /// Optional enable user database.
     user_db: bool,
+
+    /// Optional custom route configuration for login.
+    login_route: String,
+
+    /// Optional custom route configuration for register.
+    register_route: String,
 }
 
 impl Api {
@@ -103,6 +109,8 @@ impl Api {
             custom_routes: None,
             custom_cors: Arc::new(|| Cors::default()),
             user_db: false,
+            login_route: "/login".into(),
+            register_route: "/register".into(),
         }
     }
 
@@ -240,22 +248,16 @@ impl Api {
         self
     }
 
-    /**
-     * Enable user database. Ensure a sqlite3 database is created at the path specified in the `DATABASE_URL` environment variable.
-     * When enabled, the API will use the database for user authentication and management. This activates the login and register routes as "/login" and "/register".
-     *
-     * # Returns
-     * A mutable reference to the `Api` instance.
-     *
-     * # Example
-     * ```rust
-     * use rusty_api::Api;
-     *
-     * let api = Api::new().enable_user_db();
-     * ```
-     */
+    /// Enable user database with default login and register routes.
     pub fn enable_user_db(mut self) -> Self {
+        self.enable_user_db_with_routes("/login", "/register")
+    }
+
+    /// Enable user database with optional custom login and register routes.
+    pub fn enable_user_db_with_routes(mut self, login_route: &str, register_route: &str) -> Self {
         self.user_db = true;
+        self.login_route = login_route.into();
+        self.register_route = register_route.into();
         self
     }
 
@@ -305,8 +307,13 @@ impl Api {
                 // Add app_data for the pool if it exists
                 if let Some(pool) = pool.clone() {
                     app = app.app_data(web::Data::new(pool));
-                    // Configure routes::configure_routes
-                    app = app.configure(crate::core::routes::configure_routes);
+                    app = app.configure(|cfg| {
+                        crate::core::auth_routes::configure_auth_routes(
+                            cfg,
+                            &self.login_route,
+                            &self.register_route
+                        );
+                    });
                 }
 
                 // Apply custom routes if provided

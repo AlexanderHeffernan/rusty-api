@@ -1,5 +1,5 @@
 /*!
- * Routes module for handling user authentication and registration.
+ * The auth_routes module for handling user authentication and registration.
  *
  * This module defines the routes for user login and registration, including
  * the necessary input and output structures. It uses Actix Web for routing
@@ -19,12 +19,9 @@ use crate::core::user::{LoginInput, RegisterInput};
  * # Arguments
  * - `cfg`: A mutable reference to the Actix Web `ServiceConfig`.
  */
-pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/api")
-            .route("/login", web::post().to(login))
-            .route("/register", web::post().to(register))
-    );
+pub fn configure_auth_routes(cfg: &mut web::ServiceConfig, login_path: &str, register_path: &str) {
+    cfg.route(login_path, web::post().to(login))
+       .route(register_path, web::post().to(register));
 }
 
 /**
