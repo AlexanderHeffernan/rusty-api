@@ -83,7 +83,7 @@ pub use crate::core::auth::validate_token;
 pub use crate::core::auth::Claims;
 
 pub use actix_web::{web, HttpResponse, HttpRequest};
-pub use actix_web::http::StatusCode;
+pub use actix_web::http::{StatusCode, Method};
 pub use actix_cors::Cors;
 
 use once_cell::sync::Lazy;

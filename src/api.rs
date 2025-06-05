@@ -216,13 +216,14 @@ impl Api {
      * ```rust
      * use rusty_api::Api;
      * use rusty_api::Routes;
+     * use rusty_api::Method;
      *
      * async fn example_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
      *   rusty_api::HttpResponse::Ok().body("Example route accessed!")
      * }
      *
      * let routes = Routes::new()
-     *    .add_route("/example", example_route);
+     *    .add_route(Method::GET, "/example", example_route);
      *
      * let api = Api::new()
      *    .configure_routes(routes);

@@ -1,4 +1,5 @@
 use rusty_api;
+use rusty_api::Method;
 
 async fn password_route(_req: rusty_api::HttpRequest) -> rusty_api::HttpResponse {
     rusty_api::HttpResponse::Ok().body("Password route accessed!")
@@ -25,10 +26,10 @@ async fn set_role(req: rusty_api::HttpRequest, user_id: i32) -> rusty_api::HttpR
 
 fn main() {
     let routes = rusty_api::Routes::new()
-        .add_route_with_password("/password_route", password_route, "Password123")
-        .add_route("/open_route", open_route)
-        .add_route_with_auth("/get_role", get_role)
-        .add_route_with_auth("/set_role", set_role);
+        .add_route_with_password(Method::GET, "/password_route", password_route, "Password123")
+        .add_route(Method::GET, "/open_route", open_route)
+        .add_route_with_auth(Method::GET, "/get_role", get_role)
+        .add_route_with_auth(Method::POST, "/set_role", set_role);
 
     rusty_api::Api::new()
         .certs("certs/cert.pem", "certs/key.pem")

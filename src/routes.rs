@@ -13,7 +13,7 @@
  * The `Routes` struct serves as a container for all defined routes, allowing for
  * easy management and configuration.
  */
-use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler};
+use actix_web::{web, Responder, FromRequest, HttpRequest, HttpResponse, dev::Handler, http::Method};
 use crate::core::auth::{validate_token};
 
 /**
@@ -24,7 +24,7 @@ use crate::core::auth::{validate_token};
  *
  * # Example
  * ```rust
- * use rusty_api::Routes;
+ * use rusty_api::{Routes, Method};
  * use actix_web::{HttpRequest, HttpResponse};
  * 
  * async fn public_route(_req: HttpRequest) -> HttpResponse {
@@ -36,8 +36,8 @@ use crate::core::auth::{validate_token};
  * }
  * 
  * let routes = Routes::new()
- *     .add_route("/public", public_route)
- *     .add_route_with_password("/protected", protected_route, "SecretPassword");
+ *     .add_route(Method::GET, "/public", public_route)
+ *     .add_route_with_password(Method::GET, "/protected", protected_route, "SecretPassword");
  * ```
  */
 pub struct Routes {
@@ -72,24 +72,26 @@ impl Routes {
      * The password is passed as a query parameter in the request.
      *
      * # Arguments
+     * - `method`: The HTTP method for the route (e.g., GET, POST).
      * - `path`: The URL path for the route.
      * - `handler`: The handler function for the route.
      * - `password`: The password required to access the route.
      *
      * # Example
      * ```rust
-     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     * use rusty_api::{Routes, HttpRequest, HttpResponse, Method};
      *
      * async fn protected_route(_req: HttpRequest) -> HttpResponse {
      *    HttpResponse::Ok().body("Protected route accessed!")
      * }
      *
      * let routes = Routes::new()
-     *    .add_route_with_password("/protected", protected_route, "SecretPassword");
+     *    .add_route_with_password(Method::GET, "/protected", protected_route, "SecretPassword");
      * ```
      */
     pub fn add_route_with_password<H, Args, R>(
         self,
+        method: Method,
         path: &'static str,
         handler: H,
         password: &'static str,
@@ -99,7 +101,7 @@ impl Routes {
         Args: FromRequest + 'static,
         R: Responder + 'static,
     {
-        self.add_route_internal(path, handler, Some(password))
+        self.add_route_internal(method, path, handler, Some(password))
     }
 
     /**
@@ -108,28 +110,29 @@ impl Routes {
      * This method allows you to define a public route that does not require authentication.
      *
      * # Arguments
+     * - `method`: The HTTP method for the route (e.g., GET, POST).
      * - `path`: The URL path for the route.
      * - `handler`: The handler function for the route.
      *
      * # Example
      * ```rust
-     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     * use rusty_api::{Routes, HttpRequest, HttpResponse, Method};
      * 
      * async fn public_route(_req: HttpRequest) -> HttpResponse {
      *    HttpResponse::Ok().body("Public route accessed!")
      * }
      *
      * let routes = Routes::new()
-     *   .add_route("/public", public_route);
+     *   .add_route(Method::GET, "/public", public_route);
      * ```
      */
-    pub fn add_route<H, Args, R>(self, path: &'static str, handler: H) -> Self
+    pub fn add_route<H, Args, R>(self, method: Method, path: &'static str, handler: H) -> Self
     where
         H: Handler<Args, Output = R> + Clone + Send + Sync + 'static,
         Args: FromRequest + 'static,
         R: Responder + 'static,
     {
-        self.add_route_internal(path, handler, None)
+        self.add_route_internal(method, path, handler, None)
     }
 
     /**
@@ -139,22 +142,23 @@ impl Routes {
      * The token is passed in the `Authorization` header of the request.
      *
      * # Arguments
+     * - `method`: The HTTP method for the route (e.g., GET, POST).
      * - `path`: The URL path for the route.
      * - `handler`: The handler function for the route.
      *
      * # Example
      * ```rust
-     * use rusty_api::{Routes, HttpRequest, HttpResponse};
+     * use rusty_api::{Routes, HttpRequest, HttpResponse, Method};
      *
      * async fn auth_route(_req: HttpRequest, userId: i32) -> HttpResponse {
      *    HttpResponse::Ok().body(format!("Authenticated user ID: {}", userId))
      * }
      *
      * let routes = Routes::new()
-     *    .add_route_with_auth("/auth", auth_route);
+     *    .add_route_with_auth(Method::GET, "/auth", auth_route);
      * ```
      */
-    pub fn add_route_with_auth<H, R>(mut self, path: &'static str, handler: H) -> Self
+    pub fn add_route_with_auth<H, R>(mut self, method: Method, path: &'static str, handler: H) -> Self
     where
         H: Fn(HttpRequest, i32) -> R + Clone + Send + Sync + 'static,
         R: futures_util::Future<Output = HttpResponse> + 'static,
@@ -184,10 +188,13 @@ impl Routes {
             }
         };
 
+        let m = method.clone();
         let route = {
             let wrapped_handler = wrapped_handler.clone(); // Clone the handler inside the closure
             move |cfg: &mut web::ServiceConfig| {
-                cfg.route(path, web::get().to(wrapped_handler.clone())); // Clone again for Actix
+                cfg.service(
+                    web::resource(path).route(web::method(m.clone()).to(wrapped_handler.clone()))
+                );
             }
         };
 
@@ -198,6 +205,7 @@ impl Routes {
     /// Internal function to handle adding routes with or without passwords.
     fn add_route_internal<H, Args, R>(
         mut self,
+        method: Method,
         path: &'static str,
         handler: H,
         password: Option<&'static str>,
@@ -221,9 +229,12 @@ impl Routes {
             }
         };
 
+        let m = method.clone();
         let route = move |cfg: &mut web::ServiceConfig| {
             let wrapped_handler = wrapped_handler.clone(); // Clone the wrapped handler inside the route closure
-            cfg.service(web::resource(path).route(web::get().to(wrapped_handler)));
+            cfg.service(
+                web::resource(path).route(web::method(m.clone()).to(wrapped_handler.clone()))
+            );
         };
         self.routes.push(Box::new(route));
         self

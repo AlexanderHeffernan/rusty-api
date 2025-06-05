@@ -12,7 +12,7 @@ Rusty API is a secure and lightweight Rust library for building backend APIs. It
 Add `rusty-api` to your `Cargo.toml`:
 ```toml
 [dependencies]
-rusty-api = "0.1.8"
+rusty-api = "0.2.1"
 ```
 
 ## Usage
