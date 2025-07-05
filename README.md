@@ -69,6 +69,7 @@ Here are some projects that use [rusty-api](https://crates.io/crates/rusty-api) 
 | Project | Description | Links |
 |---------|-------------|-------|
 | **ServerWatch** | A lightweight system monitoring tool that collects metrics and exposes them via a secure HTTPS endpoint. Built for Raspberry Pi and other Linux systems. | [GitHub](https://github.com/AlexanderHeffernan/ServerWatch) \| [Website](https://alexanderheffernan.github.io/ServerWatch/) |
+| **movie-game** | A simple guess the movie game. Makes requests to a Rust backend to get data from the TMDb API. | [GitHub](https://github.com/OliverHeffernan/movieGame) \| [Website](https://oliverheffernan.github.io/movieGame/dist/index.html) |
 | **Your Project Here** | Have a project using this package? Submit a PR to add it! | See Contributing below! |
 
 ## Contributing
